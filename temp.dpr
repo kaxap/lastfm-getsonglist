@@ -326,7 +326,8 @@ const
     Result := True;
   end;
 
-  function downloadFile(files: TStrings; const artist, song: String): Boolean;
+  function downloadFile(files: TStrings; const artist, song: String;
+    trackno: Integer = -1): Boolean;
   var j: Integer;
     hr: HResult;
     filename: String;
@@ -335,7 +336,12 @@ const
     for j := 0 to files.Count - 1 do
     begin
       Write('Downloading ', files[j], '...');
-      filename := Format('%s - %s.mp3', [artist, song]);
+
+      if (trackno = -1) then
+        filename := Format('%s - %s.mp3', [artist, song])
+      else
+        filename := Format('%.2d. %s - %s.mp3', [trackno, artist, song]);
+
       hr := URLDownloadToFile(nil, PChar(files[j]),
         PChar(filename), 0, nil);
       if SUCCEEDED(hr) AND (FileSize(filename) >= SIZE_FILE_MIN) then
@@ -394,9 +400,10 @@ begin
     getDownloadListSoundCloud(artist + ' - ' + songs[i], files, artist);
     Writeln('Found ', files.Count, ' links on soundcloud.com');
 
+
     succ := False;
     if files.Count > 0 then
-      succ := downloadFile (files, artist, songs[i]);
+      succ := downloadFile (files, artist, songs[i], i + 1); //i + 1 = track number. In order to sort by popularity.
 
     if NOT succ then
     begin
@@ -405,7 +412,7 @@ begin
       Writeln('Found ', files.Count, ' links on audiopoisk.com');
 
       if files.Count > 0 then
-        succ := downloadFile(files, artist, songs[i]);
+        succ := downloadFile(files, artist, songs[i], i + 1);
 
 
       if NOT succ then
@@ -416,7 +423,7 @@ begin
         Writeln('Found ', files.Count, ' links on mp3skull.com');
 
         if files.Count > 0 then
-          succ := downloadFile(files, artist, songs[i]);
+          succ := downloadFile(files, artist, songs[i], i + 1);
 
       end;
     end;
